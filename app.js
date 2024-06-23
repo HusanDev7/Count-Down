@@ -1,5 +1,4 @@
 const loading = document.querySelector(".loading");
-const enterBox = document.querySelector(".enter-box");
 
 window.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
@@ -19,40 +18,50 @@ const formatTime = (time) => {
     return time < 10 ? `0${time}` : time.toString();
 };
 
-const rollCounter = (element, targetValue, callback) => {
-    let currentValue = 0;
-    const interval = setInterval(() => {
-        currentValue++;
-        element.textContent = formatTime(currentValue);
-        if (currentValue >= targetValue) {
-            clearInterval(interval);
-            if (callback) callback();
-        }
-    }, 50);
+const getRandomNumber = (max) => {
+    return Math.floor(Math.random() * max);
 };
 
 const startCountdown = () => {
-    const randomYears = Math.floor(Math.random() * 100);
-    const randomDays = Math.floor(Math.random() * 101);
-    const randomHours = Math.floor(Math.random() * 24);
-    const randomMinutes = Math.floor(Math.random() * 60);
-    const randomSeconds = Math.floor(Math.random() * 60);
+    const randomYears = getRandomNumber(100);
+    const randomDays = getRandomNumber(100);
+    const randomHours = getRandomNumber(24);
+    const randomMinutes = getRandomNumber(60);
+    const randomSeconds = getRandomNumber(60);
 
-    const countYears = document.querySelector(".count-yers");
-    const countDays = document.querySelector(".count-days");
-    const countHours = document.querySelector(".count-hours");
-    const countMinutes = document.querySelector(".count-minuts");
-    const countSeconds = document.querySelector(".count-second");
+    const counters = [
+        { element: document.querySelector(".count-yers"), target: randomYears },
+        { element: document.querySelector(".count-days"), target: randomDays },
+        { element: document.querySelector(".count-hours"), target: randomHours },
+        { element: document.querySelector(".count-minuts"), target: randomMinutes },
+        { element: document.querySelector(".count-second"), target: randomSeconds }
+    ];
 
-    rollCounter(countYears, randomYears, () => {
-        rollCounter(countDays, randomDays, () => {
-            rollCounter(countHours, randomHours, () => {
-                rollCounter(countMinutes, randomMinutes, () => {
-                    rollCounter(countSeconds, randomSeconds, startActualCountdown);
-                });
-            });
-        });
-    });
+    rollCounters(counters);
+};
+
+const rollCounters = (counters) => {
+    let index = 0;
+    const rollNextCounter = () => {
+        if (index >= counters.length) {
+            startActualCountdown();
+            return;
+        }
+
+        const { element, target } = counters[index];
+        let currentValue = 0;
+        const interval = setInterval(() => {
+            currentValue++;
+            element.textContent = formatTime(currentValue);
+            if (currentValue >= target) {
+                clearInterval(interval);
+                index++;
+                rollNextCounter();
+            }
+        }, 50);
+    };
+
+    rollNextCounter();
 };
 
 const startActualCountdown = () => {
@@ -62,7 +71,7 @@ const startActualCountdown = () => {
     const countMinutes = parseInt(document.querySelector(".count-minuts").textContent);
     const countSeconds = parseInt(document.querySelector(".count-second").textContent);
 
-    const targetDate = new Date();
+    let targetDate = new Date();
     targetDate.setFullYear(targetDate.getFullYear() + countYears);
     targetDate.setDate(targetDate.getDate() + countDays);
     targetDate.setHours(targetDate.getHours() + countHours);
@@ -79,6 +88,11 @@ const startTimer = (targetDate) => {
         const now = new Date();
         const timeLeft = new Date(targetDate) - now;
 
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            return;
+        }
+
         let secondsLeft = Math.floor((timeLeft % (1000 * 60)) / 1000);
         let minutesLeft = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
         let hoursLeft = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -91,10 +105,6 @@ const startTimer = (targetDate) => {
         document.querySelector(".count-hours").textContent = formatTime(hoursLeft);
         document.querySelector(".count-minuts").textContent = formatTime(minutesLeft);
         document.querySelector(".count-second").textContent = formatTime(secondsLeft);
-
-        if (timeLeft <= 0) {
-            clearInterval(timer);
-        }
     }, 1000);
 };
 
